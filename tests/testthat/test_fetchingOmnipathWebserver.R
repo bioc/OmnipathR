@@ -146,15 +146,12 @@ complexes_filter_test$nrefs <-
 ## import_Omnipath_annotations 
 annotations_filter_func <- 
     import_Omnipath_annotations(select_genes=c("TP53","LMNA"),
-    filter_databases=c("HPA"))
+    filter_databases=c("HPA_subcellular"))
 url_annotations <- 'http://omnipathdb.org/annotations?&proteins=TP53,LMNA'
 annotations_genes <- getURL(url_annotations, read.csv, sep = '\t', 
     header = TRUE, stringsAsFactors = FALSE)
-annotations_filter_test <- dplyr::filter(annotations_genes, source=="HPA")
-
-## import_Omnipath_intercell
-intercell_filter_func <- import_Omnipath_intercell(select_categories=c("ecm"))
-intercell_filter_test <- dplyr::filter(intercell,category=="ecm")
+annotations_filter_test <- 
+    dplyr::filter(annotations_genes, source=="HPA_subcellular")
 
 ## Check the results between simulations and original functions
 test_that("Check the fecthing of Omnipath webserver with filters", {
@@ -162,6 +159,5 @@ test_that("Check the fecthing of Omnipath webserver with filters", {
     expect_equal(interactions_filter_func, interactions_filter_test)
     expect_equal(complexes_filter_func, complexes_filter_test)
     expect_equal(annotations_filter_func, annotations_filter_test)
-    expect_equal(intercell_filter_func, intercell_filter_test)
 })
 

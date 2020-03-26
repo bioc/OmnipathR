@@ -4,8 +4,11 @@
 \alias{import_Omnipath_annotations}
 \title{Import Omnipath Annotations}
 \usage{
-import_Omnipath_annotations(from_cache_file = NULL,
-  select_genes = NULL, filter_databases = get_annotation_databases())
+import_Omnipath_annotations(
+  from_cache_file = NULL,
+  select_genes = NULL,
+  filter_databases = get_annotation_databases()
+)
 }
 \arguments{
 \item{from_cache_file}{path to an earlier data file}
