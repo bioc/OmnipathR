@@ -32,7 +32,7 @@ information on the roles in inter-cellular signaling. E.g. if a protein is
 a ligand, a receptor, an extracellular matrix (ECM) component, etc.
 }
 \examples{
-intercell = import_Omnipath_intercell(select_categories=c("ecm"))
+intercell = import_Omnipath_intercell()
 }
 \seealso{
 \code{\link{get_intercell_categories}}

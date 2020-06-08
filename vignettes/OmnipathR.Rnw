@@ -260,9 +260,10 @@ printPath_vs(all_shortest_paths(OPI_g,from = "DYRK2",
 ## such as cluster_edge_betweenness. These cluster methods are directly
 ## available in the igraph package.
 OPI_g_undirected <- as.undirected(OPI_g, mode=c("mutual"))
-cl_results <- cluster_louvain(OPI_g_undirected)
+OPI_g_undirected <- simplify(OPI_g_undirected)
+cl_results <- cluster_fast_greedy(OPI_g_undirected)
 ## We extract the cluster where a protein of interest is contained
-cluster_id <- cl_results$membership[which(cl_results$names == "CD22")]
+cluster_id <- cl_results$membership[which(cl_results$names == "SOCS3")]
 module_graph <- induced_subgraph(OPI_g_undirected, 
     V(OPI_g)$name[which(cl_results$membership == cluster_id)])
 @
@@ -384,11 +385,11 @@ TF.
 <<>>=
 ## We query and store the interactions into a dataframe
 interactions <- import_TFregulons_Interactions(filter_databases=c("DoRothEA_A",
-    "ARACNe-GTEx"),select_organism=9606)
+    "ARACNe-GTEx_DoRothEA"),select_organism=9606)
 
 ## We select the most confident interactions for a given TF and we print 
 ## the interactions to check the way it regulates its different targets
-interactions_A_GLI1  <- dplyr::filter(interactions, tfregulons_level=="A", 
+interactions_A_GLI1  <- dplyr::filter(interactions, dorothea_level=="A", 
     source_genesymbol == "GLI1")
 print_interactions(interactions_A_GLI1)
 @
@@ -629,17 +630,11 @@ head(get_intercell_categories(),10)
 ## We import the intercell data into a dataframe
 intercell <- import_Omnipath_intercell()
 
-## We check the intercell annotations for our previous complex itself
-dplyr::filter(intercell,
-    genesymbol == complexes_query_genes_join$components_genesymbols,
-    mainclass != "") %>%
-    dplyr::select(category,genesymbol, mainclass)
-
-## We check the intercell annotations for the individual components of 
+## We check the intercell annotations for the individual components of
 ## our previous complex. We filter our data to print it in a good format
-dplyr::filter(intercell,genesymbol %in% genes_complex, mainclass!="") %>% 
-    dplyr::distinct(genesymbol,mainclass, .keep_all = TRUE) %>%
-    dplyr::select(category, genesymbol, mainclass) %>%
+dplyr::filter(intercell,genesymbol %in% genes_complex) %>%
+    dplyr::distinct(genesymbol, parent, .keep_all = TRUE) %>%
+    dplyr::select(category, genesymbol, parent) %>%
     dplyr::arrange(genesymbol)
 
 ## We close graphical connections

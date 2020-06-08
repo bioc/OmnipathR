@@ -700,7 +700,7 @@ get_annotation_databases = function(){
 #' All the genes belonging to those classes will be returned. For furter 
 #' information about the main classes see \code{\link{get_intercell_classes}} 
 #' @examples
-#' intercell = import_Omnipath_intercell(select_categories=c("ecm"))
+#' intercell = import_Omnipath_intercell()
 #' @seealso \code{\link{get_intercell_categories}} 
 import_Omnipath_intercell = function (from_cache_file=NULL,
     select_categories = get_intercell_categories(), 
@@ -724,82 +724,6 @@ import_Omnipath_intercell = function (from_cache_file=NULL,
     } else {
         return(intercell)
     }
-}
-
-#' Imports an intercellular network combining annotations and interactions
-#'
-#' Imports an intercellular network by mapping intercellular annotations 
-#' and protein interactions. It first imports the PPI interactions from the
-#' different datasets here described. Then, it takes proteins with the 
-#' intercellular roles defined by the user. Some proteins should be defined 
-#' as transmiters (eg. ligand) and other as receivers (receptor). We find the 
-#' interactions which source is a transmiter and its target a receiver. 
-#'
-#' @return A dataframe containing information about protein-protein 
-#' interactions and the inter-cellular roles of the protiens involved in those
-#' interactions. 
-#' @export
-#' @importFrom utils read.csv
-#' @param from_cache_file path to an earlier data file
-#' @param filter_databases vector containing interactions databases. 
-#' Interactions not reported in these databases are removed. 
-#' See \code{\link{get_interaction_databases}} for more information.
-#' @param classes_source A list containing two vectors. The first one with 
-#' the main classes to be considered as transmiters and the second with the 
-#' main classes to be considered as receivers. For furter information
-#' about the main classes see \code{\link{get_intercell_classes}} 
-#' @examples
-#' intercellNetwork <- import_intercell_network(
-#' classes_source = list(transmiters=c('ligand'),receivers=c('receptor')))
-#' @seealso \code{\link{get_intercell_categories}} 
-import_intercell_network = function (from_cache_file=NULL,
-    filter_databases = get_interaction_databases(), 
-    classes_source = list(transmiters=c('ligand'),receivers=c('receptor'))) {
-
-    mainclass <- genesymbol <- NULL
-    AllClasses <- unlist(classes_source)
-    
-    if (!all(AllClasses %in% get_intercell_classes())){
-        stop("Some all the classes are not correct. 
-            Check get_intercell_classes()")
-    }
-    
-    url_allinteractions_common <- 
-        paste0('http://omnipathdb.org/interactions?datasets=omnipath',
-            ',pathwayextra,kinaseextra,ligrecextra', 
-            '&fields=sources,references')
-
-    url_allinteractions <- organism_url(url_allinteractions_common, 9606)    
-    
-    if(is.null(from_cache_file)){
-        interactions <- getURL(url_allinteractions, read.table, sep = '\t', 
-            header = TRUE, stringsAsFactors = FALSE)
-        message("Downloaded ", nrow(interactions), " interactions")
-    } else {
-        load(from_cache_file)
-    }
-
-    filteredInteractions <- filter_format_inter(interactions,filter_databases)
-    
-    intercellAnnotations <- 
-        import_Omnipath_intercell(select_classes = AllClasses)
-
-    genesTransmiters <- intercellAnnotations %>%
-        dplyr::filter(mainclass %in% classes_source$transmiters) %>%
-        dplyr::distinct(genesymbol,mainclass)
-    genesReceivers <- intercellAnnotations %>%
-        dplyr::filter(mainclass %in% classes_source$receivers) %>%
-        dplyr::distinct(genesymbol,mainclass)
-    
-    intercelNetwork <- 
-        dplyr::inner_join(filteredInteractions, genesTransmiters, 
-            by=c("source_genesymbol"="genesymbol")) %>% 
-        dplyr::rename(class_source = mainclass) %>%
-        dplyr::inner_join(genesReceivers, 
-            by=c("target_genesymbol"="genesymbol")) %>% 
-        dplyr::rename(class_target = mainclass)
-        
-    return(intercelNetwork)
 }
 
 #' Get the different intercell categories described in Omnipath
